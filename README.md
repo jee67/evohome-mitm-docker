@@ -11,7 +11,7 @@ Docker-based Evohome MITM appliance.
 
 
 ## EVOHOME-MITM-DOCKER — INBEDRIJFSTELLING
-## Doel: gecontroleerde livegang op dedicated Raspberry Pi
+### Doel: gecontroleerde livegang op dedicated Raspberry Pi
 
 
 
@@ -55,14 +55,14 @@ docker compose build
 Verwacht: geen errors
 
 
-## 5. Container starten ====================================================
+## 5. Container starten
 docker compose up -d
 
 Controleer dat hij draait
 docker ps
 
 
-## 6. Logcontrole (cruciaal) ===============================================
+## 6. Logcontrole (cruciaal) 
 docker logs -f evohome-mitm-docker
 
  Verwacht o.a.:
