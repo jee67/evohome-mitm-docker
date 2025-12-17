@@ -8,27 +8,29 @@ Docker-based Evohome MITM appliance.
 - Fail-safe RF pass-through
 - Geschikt voor Quatt hybride systemen
 
-###############################################################################
-# EVOHOME-MITM-DOCKER — INBEDRIJFSTELLING
-# Doel: gecontroleerde livegang op dedicated Raspberry Pi
-###############################################################################
-
-# === 0. Randvoorwaarden (handmatig checken) ================================
-# - Raspberry Pi OS Lite draait
-# - Docker + docker-compose zijn geïnstalleerd
-# - MQTT broker bereikbaar (bijv. 10.0.0.190)
-# - Home Assistant publiceert buitentemperatuur op:
-#   evohome/context/outdoor_temperature (retain=true)
-# - Evohome installatie is operationeel
-# - evofw3 USB-stick beschikbaar
 
 
-# === 1. Repo ophalen =========================================================
+## EVOHOME-MITM-DOCKER — INBEDRIJFSTELLING
+## Doel: gecontroleerde livegang op dedicated Raspberry Pi
+
+
+
+## === 0. Randvoorwaarden (handmatig checken) ================================
+### - Raspberry Pi OS Lite draait
+### - Docker + docker-compose zijn geïnstalleerd
+### - MQTT broker bereikbaar (bijv. 10.0.0.190)
+### - Home Assistant publiceert buitentemperatuur op:
+###   evohome/context/outdoor_temperature (retain=true)
+### - Evohome installatie is operationeel
+### - evofw3 USB-stick beschikbaar
+
+
+## === 1. Repo ophalen =========================================================
 git clone https://github.com/<jouw-account>/evohome-mitm-docker.git
 cd evohome-mitm-docker
 
 
-# === 2. RF-stick detectie ====================================================
+## === 2. RF-stick detectie ====================================================
 ls -l /dev/serial/by-id/
 
 # Verwacht iets als:
