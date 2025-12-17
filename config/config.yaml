@@ -1,0 +1,33 @@
+serial:
+  device: /dev/ttyMITM
+  baud: 115200
+
+mqtt:
+  host: 10.0.0.190
+  port: 1883
+
+ch:
+  max: 55
+  idle: 10
+  ramp_step: 2
+  ramp_interval: 30
+
+  adaptive:
+    enabled: true
+    min: 38
+    max: 55
+    curve:
+      - outdoor: -10
+        ch_max: 55
+      - outdoor: -7
+        ch_max: 52
+      - outdoor: -3
+        ch_max: 48
+      - outdoor: 0
+        ch_max: 45
+      - outdoor: 2
+        ch_max: 44
+      - outdoor: 7
+        ch_max: 41
+      - outdoor: 12
+        ch_max: 38
