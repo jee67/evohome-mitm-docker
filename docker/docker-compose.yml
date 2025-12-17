@@ -1,0 +1,11 @@
+services:
+  evohome-mitm-docker:
+    build: .
+    container_name: evohome-mitm-docker
+    restart: unless-stopped
+    devices:
+      - /dev/serial/by-id/usb-evofw3-mitm:/dev/ttyMITM
+    volumes:
+      - ./config:/config:ro
+    environment:
+      MITM_CONFIG: /config/config.yaml
