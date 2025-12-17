@@ -61,3 +61,48 @@ De MITM stuurt **nooit actief**; zij stelt uitsluitend een plafond.
 ### Inkomend (context)
 
 **Topic**
+evohome/context/outdoor_temperature
+
+**Payload**
+- plain float
+- graden Celsius
+- voorbeeld: `7.4`
+
+**Validatie**
+- bereik: −30 … +50 °C
+- stale-data timeout: 900 s
+- ongeldige data wordt genegeerd en gelogd
+
+### Uitgaand (observatie)
+
+**Topic**
+evohome/mitm/raw
+**Payload**
+- ongewijzigde RAMSES-II frame tekst
+- QoS 0
+- geen retain
+
+---
+
+## 6. Fail-safe gedrag
+
+Fail-safe is een kernontwerpprincipe.
+
+| Situatie | Gedrag |
+|--------|--------|
+| MITM stopt | RF-stick komt vrij, Evohome neemt over |
+| MQTT weg | vaste CH-max uit config |
+| Ongeldige data | genegeerd |
+| Stale data | adaptie uitgeschakeld |
+
+De MITM bevat geen persistente state.
+
+---
+
+## 7. Ontwerpfilosofie
+
+- MITM is een appliance, geen platform
+- Zo weinig mogelijk logica op RF-niveau
+- Context is adviserend, nooit dwingend
+- Uitlegbaar boven slim
+- Bewezen patronen boven experiment
