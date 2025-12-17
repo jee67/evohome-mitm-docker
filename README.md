@@ -16,13 +16,13 @@ Docker-based Evohome MITM appliance.
 
 
 ## === 0. Randvoorwaarden (handmatig checken) ================================
-### - Raspberry Pi OS Lite draait
-### - Docker + docker-compose zijn geïnstalleerd
-### - MQTT broker bereikbaar (bijv. 10.0.0.190)
-### - Home Assistant publiceert buitentemperatuur op:
-###   evohome/context/outdoor_temperature (retain=true)
-### - Evohome installatie is operationeel
-### - evofw3 USB-stick beschikbaar
+- Raspberry Pi OS Lite draait
+- Docker + docker-compose zijn geïnstalleerd
+- MQTT broker bereikbaar (bijv. 10.0.0.190)
+- Home Assistant publiceert buitentemperatuur op:
+    evohome/context/outdoor_temperature (retain=true)
+- Evohome installatie is operationeel
+- evofw3 USB-stick beschikbaar
 
 
 ## === 1. Repo ophalen =========================================================
@@ -33,35 +33,36 @@ cd evohome-mitm-docker
 ## === 2. RF-stick detectie ====================================================
 ls -l /dev/serial/by-id/
 
-# Verwacht iets als:
-# usb-evofw3-mitm -> ../../ttyUSB0
-# Pas zo nodig het pad aan in docker/docker-compose.yml
+Verwacht iets als:
+ usb-evofw3-mitm -> ../../ttyUSB0
+
+Pas zo nodig het pad aan in docker/docker-compose.yml
 
 
-# === 3. Configuratie controleren ============================================
+## === 3. Configuratie controleren ============================================
 cat config/config.yaml
 
-# Verifieer minimaal:
-# - serial.device
-# - mqtt.host = 10.0.0.190
-# - adaptive.enabled = true
-# - curve conform jouw installatie
+Verifieer minimaal:
+- serial.device
+- mqtt.host = 10.0.0.190
+- adaptive.enabled = true
+- curve conform jouw installatie
 
 
-# === 4. Container bouwen =====================================================
+## === 4. Container bouwen =====================================================
 docker compose build
 
-# Verwacht: geen errors
+Verwacht: geen errors
 
 
-# === 5. Container starten ====================================================
+## === 5. Container starten ====================================================
 docker compose up -d
 
-# Controleer dat hij draait
+Controleer dat hij draait
 docker ps
 
 
-# === 6. Logcontrole (cruciaal) ===============================================
+## === 6. Logcontrole (cruciaal) ===============================================
 docker logs -f evohome-mitm-docker
 
 # Verwacht o.a.:
@@ -70,37 +71,37 @@ docker logs -f evohome-mitm-docker
 # GEEN Python exceptions
 
 
-# === 7. Fail-safe test =======================================================
-# Stop MITM expliciet
+## === 7. Fail-safe test =======================================================
+Stop MITM expliciet
 docker stop evohome-mitm-docker
 
-# Verwacht:
-# - Evohome blijft verwarmen
-# - Geen communicatiefouten
-# - Geen comfortverlies
+Verwacht:
+- Evohome blijft verwarmen
+- Geen communicatiefouten
+- Geen comfortverlies
 
-# Start opnieuw
+Start opnieuw
 docker start evohome-mitm-docker
 
 
-# === 8. Adaptieve CH-max validatie ===========================================
-# (optioneel, gecontroleerd)
-# - Verander buitentemperatuur in Home Assistant
-# - Observeer logs
-# - Controleer dat CH-setpoint niet boven curve-plafond komt
-# - Let op ramping (+2 °C per 30 s)
+## === 8. Adaptieve CH-max validatie ===========================================
+ (optioneel, gecontroleerd)
+ - Verander buitentemperatuur in Home Assistant
+ - Observeer logs
+ - Controleer dat CH-setpoint niet boven curve-plafond komt
+ - Let op ramping (+2 °C per 30 s)
 
 
-# === 9. Definitieve ingebruikname ============================================
+## === 9. Definitieve ingebruikname ============================================
 docker restart evohome-mitm-docker
 
-# Laat minimaal 24 uur ononderbroken draaien
-# Observeer comfort, ketelgedrag en pendelgedrag
+Laat minimaal 24 uur ononderbroken draaien
+Observeer comfort, ketelgedrag en pendelgedrag
 
 
-# === 10. Terugvalscenario (altijd beschikbaar) ===============================
-# Bij twijfel of storing:
+## === 10. Terugvalscenario (altijd beschikbaar) ===============================
+Bij twijfel of storing:
 docker stop evohome-mitm-docker
 
-# Evohome neemt direct volledige regie terug
+Evohome neemt direct volledige regie terug
 ###############################################################################
