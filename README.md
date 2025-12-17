@@ -15,7 +15,7 @@ Docker-based Evohome MITM appliance.
 
 
 
-## === 0. Randvoorwaarden (handmatig checken) ================================
+## 0. Randvoorwaarden (handmatig checken) 
 - Raspberry Pi OS Lite draait
 - Docker + docker-compose zijn geïnstalleerd
 - MQTT broker bereikbaar (bijv. 10.0.0.190)
@@ -25,12 +25,12 @@ Docker-based Evohome MITM appliance.
 - evofw3 USB-stick beschikbaar
 
 
-## === 1. Repo ophalen =========================================================
+## 1. Repo ophalen
 git clone https://github.com/<jouw-account>/evohome-mitm-docker.git
 cd evohome-mitm-docker
 
 
-## === 2. RF-stick detectie ====================================================
+## 2. RF-stick detectie
 ls -l /dev/serial/by-id/
 
 Verwacht iets als:
@@ -39,7 +39,7 @@ Verwacht iets als:
 Pas zo nodig het pad aan in docker/docker-compose.yml
 
 
-## === 3. Configuratie controleren ============================================
+## 3. Configuratie controleren
 cat config/config.yaml
 
 Verifieer minimaal:
@@ -49,29 +49,29 @@ Verifieer minimaal:
 - curve conform jouw installatie
 
 
-## === 4. Container bouwen =====================================================
+## 4. Container bouwen
 docker compose build
 
 Verwacht: geen errors
 
 
-## === 5. Container starten ====================================================
+## 5. Container starten ====================================================
 docker compose up -d
 
 Controleer dat hij draait
 docker ps
 
 
-## === 6. Logcontrole (cruciaal) ===============================================
+## 6. Logcontrole (cruciaal) ===============================================
 docker logs -f evohome-mitm-docker
 
-# Verwacht o.a.:
-# INFO evohome-mitm-docker started
-# INFO Outdoor temperature X.X °C
-# GEEN Python exceptions
+ Verwacht o.a.:
+ INFO evohome-mitm-docker started
+ INFO Outdoor temperature X.X °C
+ GEEN Python exceptions
 
 
-## === 7. Fail-safe test =======================================================
+## 7. Fail-safe test 
 Stop MITM expliciet
 docker stop evohome-mitm-docker
 
@@ -84,7 +84,7 @@ Start opnieuw
 docker start evohome-mitm-docker
 
 
-## === 8. Adaptieve CH-max validatie ===========================================
+##  8. Adaptieve CH-max validatie
  (optioneel, gecontroleerd)
  - Verander buitentemperatuur in Home Assistant
  - Observeer logs
@@ -92,16 +92,15 @@ docker start evohome-mitm-docker
  - Let op ramping (+2 °C per 30 s)
 
 
-## === 9. Definitieve ingebruikname ============================================
+## 9. Definitieve ingebruikname
 docker restart evohome-mitm-docker
 
 Laat minimaal 24 uur ononderbroken draaien
 Observeer comfort, ketelgedrag en pendelgedrag
 
 
-## === 10. Terugvalscenario (altijd beschikbaar) ===============================
+## 10. Terugvalscenario (altijd beschikbaar)
 Bij twijfel of storing:
 docker stop evohome-mitm-docker
 
 Evohome neemt direct volledige regie terug
-###############################################################################
