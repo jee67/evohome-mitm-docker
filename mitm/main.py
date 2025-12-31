@@ -36,11 +36,33 @@ def main():
 
         if frame.is_ch_setpoint():
             ch = frame.get_ch_value()
+
             if ch is not None:
-                logging.debug("CH RX: %.1f°C", ch)    
-                serial.write_frame(limiter.process(frame).raw)
+                logging.debug(
+                    "RF RX 1F09: requested_ch=%.1f°C | raw='%s'",
+                    ch,
+                    frame.text
+                )
             else:
-                serial.write_frame(raw)
+                logging.debug(
+                    "RF RX 1F09: unparsed | raw='%s'",
+                    frame.text
+                )
+
+            out = limiter.process(frame)
+
+            out_ch = out.get_ch_value()
+            if out_ch is not None:
+                logging.debug(
+                    "RF TX 1F09: sent_ch=%.1f°C | raw='%s'",
+                    out_ch,
+                    out.text
+                )
+
+            serial.write_frame(out.raw)
+
+        else:
+            serial.write_frame(raw)
 
 if __name__ == "__main__":
     main()
