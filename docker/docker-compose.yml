@@ -1,6 +1,8 @@
 services:
   evohome-mitm:
-    build: .
+    build: 
+      context: ..
+      dockerfile: Dockerfile
     container_name: evohome-mitm
     restart: unless-stopped
 
