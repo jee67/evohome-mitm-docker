@@ -1,4 +1,5 @@
 import logging
+import os
 
 from mitm.config import Config
 from mitm.serial_if import SerialInterface
@@ -8,8 +9,9 @@ from mitm.adaptive import AdaptiveCHMax
 from mitm.limiter import CHLimiter
 from mitm.mqtt_if import MQTTClient
 
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, log_level, logging.INFO),
     format="%(asctime)s %(levelname)s %(message)s"
 )
 
