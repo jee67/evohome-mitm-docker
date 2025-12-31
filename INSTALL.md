@@ -22,7 +22,7 @@ Controleer eerst of het volgende in orde is:
 
 ## 1. Software ophalen
 
-Download de software en ga naar de juiste map:
+Download de software en ga naar de juiste map (bijvoorbeeld /opt):
 
     git clone https://github.com/jee67/evohome-mitm-docker.git
     cd evohome-mitm-docker
