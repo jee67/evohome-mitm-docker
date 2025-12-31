@@ -25,7 +25,7 @@ services:
 
       # CH-regels
       CH_IDLE_TEMP_C: "10.0"
-      CH_BASE_MAX_C: "35.0"
+      CH_BASE_MAX_C: "55.0"
 
       # Ramping
       RAMP_UP_C_PER_30S: "2.0"
