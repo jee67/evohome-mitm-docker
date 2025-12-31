@@ -35,9 +35,12 @@ def main():
         mqtt.publish_frame(frame)
 
         if frame.is_ch_setpoint():
-            serial.write_frame(limiter.process(frame).raw)
-        else:
-            serial.write_frame(raw)
+            ch = frame.get_ch_value()
+            if ch is not None:
+                logging.debug("CH RX: %.1f°C", ch)    
+                serial.write_frame(limiter.process(frame).raw)
+            else:
+                serial.write_frame(raw)
 
 if __name__ == "__main__":
     main()
