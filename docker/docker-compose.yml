@@ -1,11 +1,45 @@
 services:
-  evohome-mitm-docker:
+  evohome-mitm:
     build: .
-    container_name: evohome-mitm-docker
+    container_name: evohome-mitm
     restart: unless-stopped
+
+    # RAMSES / evofw3 USB-stick (long syntax, expliciet)
     devices:
-      - /dev/serial/by-id/usb-evofw3-mitm:/dev/ttyMITM
+      - source: /dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E8:06:90:97:EF:20-if00
+        target: /dev/ttyMITM
+        permissions: rwm
+
+    environment:
+      TZ: Europe/Amsterdam
+      LOG_LEVEL: DEBUG
+
+      # MQTT broker (LAN-only, geen authenticatie)
+      MQTT_HOST: 10.0.0.190
+      MQTT_PORT: "1883"
+
+      # Context input vanuit Home Assistant
+      OUTDOOR_TEMP_TOPIC: evohome/context/outdoor_temperature
+
+      # CH-regels
+      CH_IDLE_TEMP_C: "10.0"
+      CH_BASE_MAX_C: "35.0"
+
+      # Ramping
+      RAMP_UP_C_PER_30S: "2.0"
+      RAMP_DOWN_MODE: "immediate"
+
+      # Alleen RAMSES-II verb 1F09 muteren
+      ALLOWED_VERBS: "1F09"
+
     volumes:
       - ./config:/config:ro
-    environment:
-      MITM_CONFIG: /config/config.yaml
+      - ./logs:/logs
+      - /etc/localtime:/etc/localtime:ro
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
