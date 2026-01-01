@@ -32,12 +32,16 @@ def main():
 
     logging.info("evohome-mitm started (RF observe-only mode)")
 
-    while True:
-        frames = serial.read_frames()
-        for raw in frames:
-            frame = RamsesFrame(raw)
+    
+while True:
+    frames = serial.read_frames()
+    if not frames:
+        continue
 
-        # publish raw frame to MQTT (optioneel, maar behouden)
+    for raw in frames:
+        frame = RamsesFrame(raw)
+
+        # publish raw frame to MQTT
         mqtt.publish_frame(frame)
 
         # decode known RAMSES-II messages
@@ -61,7 +65,6 @@ def main():
                         frame.text,
                     )
             else:
-                #logging.debug(
                 logging.info(
                     "RF %s | undecoded | raw='%s'",
                     frame.code,
@@ -70,7 +73,7 @@ def main():
 
         # transparant doorgeven (geen mutatie)
         serial.write_frame(raw)
-
+        
 
 if __name__ == "__main__":
     main()
