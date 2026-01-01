@@ -33,11 +33,18 @@ def main():
     logging.info("evohome-mitm started (RF observe-only mode)")
 
     while True:
-        raw = serial.read_frame()
-        if not raw:
-            continue
+        #raw = serial.read_frame()
+        #if not raw:
+        #    continue
 
-        frame = RamsesFrame(raw)
+        #frame = RamsesFrame(raw)
+        
+        lines = serial.read_lines()
+        if not lines:
+            continue
+            
+        for raw in lines:
+            frame = RamsesFrame(raw)
 
         # publish raw frame to MQTT (optioneel, maar behouden)
         mqtt.publish_frame(frame)
