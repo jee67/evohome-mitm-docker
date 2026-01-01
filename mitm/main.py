@@ -32,48 +32,47 @@ def main():
 
     logging.info("evohome-mitm started (RF observe-only mode)")
 
-    
-while True:
-    frames = serial.read_frames()
-    if not frames:
-        continue
+    while True:
+        frames = serial.read_frames()
+        if not frames:
+            continue
 
-    for raw in frames:
-        frame = RamsesFrame(raw)
+        for raw in frames:
+            frame = RamsesFrame(raw)
 
-        # publish raw frame to MQTT
-        mqtt.publish_frame(frame)
+            # publish raw frame to MQTT
+            mqtt.publish_frame(frame)
 
-        # decode known RAMSES-II messages
-        if frame.code:
-            decoded = decode(frame.code, frame.payload)
+            # decode known RAMSES-II messages
+            if frame.code:
+                decoded = decode(frame.code, frame.payload)
 
-            if decoded:
-                if "value_c" in decoded:
-                    logging.info(
-                        "RF %s | %s = %.1f°C | raw='%s'",
-                        frame.code,
-                        decoded.get("meaning", "unknown"),
-                        decoded["value_c"],
-                        frame.text,
-                    )
+                if decoded:
+                    if "value_c" in decoded:
+                        logging.info(
+                            "RF %s | %s = %.1f°C | raw='%s'",
+                            frame.code,
+                            decoded.get("meaning", "unknown"),
+                            decoded["value_c"],
+                            frame.text,
+                        )
+                    else:
+                        logging.info(
+                            "RF %s | %s | raw='%s'",
+                            frame.code,
+                            decoded.get("meaning", "known"),
+                            frame.text,
+                        )
                 else:
                     logging.info(
-                        "RF %s | %s | raw='%s'",
+                        "RF %s | undecoded | raw='%s'",
                         frame.code,
-                        decoded.get("meaning", "known"),
                         frame.text,
                     )
-            else:
-                logging.info(
-                    "RF %s | undecoded | raw='%s'",
-                    frame.code,
-                    frame.text,
-                )
 
-        # transparant doorgeven (geen mutatie)
-        serial.write_frame(raw)
-        
+            # transparant doorgeven (geen mutatie)
+            serial.write_frame(raw)
+
 
 if __name__ == "__main__":
     main()
