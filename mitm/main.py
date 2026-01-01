@@ -4,42 +4,33 @@ import logging
 from mitm.config import Config
 from mitm.serial_if import SerialInterface
 from mitm.ramses import RamsesFrame
-from mitm.context import Context
-from mitm.adaptive import AdaptiveCHMax
-from mitm.limiter import CHLimiter
 from mitm.mqtt_if import MQTTClient
+from mitm.decoder import decode
 
 
 # ─────────────────────────────────────────────────────────────
-# Logging: force root logger level from LOG_LEVEL env
+# Logging setup (force root logger, docker-friendly)
 # ─────────────────────────────────────────────────────────────
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 
-root_logger = logging.getLogger()
-root_logger.setLevel(getattr(logging, log_level, logging.INFO))
-
-handler = logging.StreamHandler()
-handler.setFormatter(
-    logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+logging.basicConfig(
+    level=getattr(logging, log_level, logging.INFO),
+    format="%(asctime)s %(levelname)s %(message)s",
 )
-
-# voorkom dubbele handlers
-if not root_logger.handlers:
-    root_logger.addHandler(handler)
 
 
 def main():
     cfg = Config.load()
 
-    context = Context()
-    adaptive = AdaptiveCHMax(cfg)
+    serial = SerialInterface(
+        cfg.serial_device,
+        cfg.serial_baud,
+    )
 
-    serial = SerialInterface(cfg.serial_device, cfg.serial_baud)
-    limiter = CHLimiter(cfg, context, adaptive)
-    mqtt = MQTTClient(cfg, context)
-
+    mqtt = MQTTClient(cfg, context=None)
     mqtt.connect()
-    logging.info("evohome-mitm-docker started")
+
+    logging.info("evohome-mitm started (RF observe-only mode)")
 
     while True:
         raw = serial.read_frame()
@@ -47,37 +38,39 @@ def main():
             continue
 
         frame = RamsesFrame(raw)
+
+        # publish raw frame to MQTT (optioneel, maar behouden)
         mqtt.publish_frame(frame)
 
-        if frame.is_ch_setpoint():
-            ch = frame.get_ch_value()
+        # decode known RAMSES-II messages
+        if frame.code:
+            decoded = decode(frame.code, frame.payload)
 
-            if ch is not None:
-                logging.debug(
-                    "RF RX 1F09: requested_ch=%.1f°C | raw='%s'",
-                    ch,
-                    frame.text
-                )
+            if decoded:
+                if "value_c" in decoded:
+                    logging.info(
+                        "RF %s | %s = %.1f°C | raw='%s'",
+                        frame.code,
+                        decoded.get("meaning", "unknown"),
+                        decoded["value_c"],
+                        frame.text,
+                    )
+                else:
+                    logging.info(
+                        "RF %s | %s | raw='%s'",
+                        frame.code,
+                        decoded.get("meaning", "known"),
+                        frame.text,
+                    )
             else:
                 logging.debug(
-                    "RF RX 1F09: unparsed | raw='%s'",
-                    frame.text
+                    "RF %s | undecoded | raw='%s'",
+                    frame.code,
+                    frame.text,
                 )
 
-            out = limiter.process(frame)
-
-            out_ch = out.get_ch_value()
-            if out_ch is not None:
-                logging.debug(
-                    "RF TX 1F09: sent_ch=%.1f°C | raw='%s'",
-                    out_ch,
-                    out.text
-                )
-
-            serial.write_frame(out.raw)
-
-        else:
-            serial.write_frame(raw)
+        # transparant doorgeven (geen mutatie)
+        serial.write_frame(raw)
 
 
 if __name__ == "__main__":
