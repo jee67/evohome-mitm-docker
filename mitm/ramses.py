@@ -3,6 +3,10 @@ class RamsesFrame:
         self.raw = raw
         self.text = raw.decode(errors="ignore").strip()
 
+        parts = self.text.split()
+        self.code = parts[6] if len(parts) > 6 else None
+        self.payload = parts[8] if len(parts) > 8 else ""
+
     def is_ch_setpoint(self):
         return " 1F09 " in self.text
 
