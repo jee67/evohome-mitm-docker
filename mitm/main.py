@@ -19,7 +19,7 @@ logging.basicConfig(
 # ─────────────────────────────────────────────────────────────
 # HARD FILTER (bewust in code, niet via env)
 # ─────────────────────────────────────────────────────────────
-FILTER_ENABLED = True
+FILTER_ENABLED = False
 
 FILTER_CODES = {"3220"}  # bv alleen heat-demand frames
 FILTER_ADDRS = {
