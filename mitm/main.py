@@ -70,7 +70,8 @@ def main():
                         frame.text,
                     )
             else:
-                logging.debug(
+                #logging.debug(
+                logging.info(
                     "RF %s | undecoded | raw='%s'",
                     frame.code,
                     frame.text,
