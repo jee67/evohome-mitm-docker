@@ -4,49 +4,40 @@ import re
 
 from mitm.config import Config
 from mitm.serial_if import SerialInterface
+from mitm.decoder import decode
 
 
-# ─────────────────────────────────────────────────────────────
-# Logging
-# ─────────────────────────────────────────────────────────────
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=getattr(logging, log_level, logging.INFO),
     format="%(asctime)s %(levelname)s %(message)s",
 )
 
-
-# ─────────────────────────────────────────────────────────────
-# HARD FILTER (bewust in code, niet via env)
-# ─────────────────────────────────────────────────────────────
-FILTER_ENABLED = False
-
-FILTER_CODES = {"3220"}  # bv alleen heat-demand frames
-FILTER_ADDRS = {
-    ("18:262143", "10:061315"),
-    ("10:061315", "18:262143"),
-}
-
-# Zet FILTER_ENABLED = False om alles te loggen
-
-
-# ─────────────────────────────────────────────────────────────
-# Frame regex (alleen structureel parsen, geen interpretatie)
-# ─────────────────────────────────────────────────────────────
-FRAME_RE = re.compile(
-    r"""
-    ^\s*
-    (?P<len>\d+)\s+
-    (?P<type>RQ|RP|I)\s+---\s+
-    (?P<src>\d{2}:\d{6})\s+
-    (?P<dst>\d{2}:\d{6}|--:------)\s+
-    (?P<via>--:------|\d{2}:\d{6})\s+
-    (?P<code>[0-9A-F]{4})\s+
-    (?P<paylen>[0-9A-F]{3})\s+
-    (?P<payload>[0-9A-F]+)
-    """,
-    re.VERBOSE | re.IGNORECASE,
+# Voorbeeld frame:
+# 095 RQ --- 18:262143 10:061315 --:------ 3220 005 00C0000300
+_FRAME_RE = re.compile(
+    r"^\s*\d+\s+(?:RQ|RP|I)\s+---\s+"
+    r"(?P<src>\d{2}:\d{6}|--:------)\s+"
+    r"(?P<dst>\d{2}:\d{6}|--:------)\s+"
+    r"(?P<via>\d{2}:\d{6}|--:------)\s+"
+    r"(?P<code>[0-9A-F]{4})\s+"
+    r"(?P<len>[0-9A-F]{3})\s+"
+    r"(?P<payload>[0-9A-F]+)\s*$",
+    re.IGNORECASE,
 )
+
+
+def parse_frame(text: str):
+    line = text.strip()
+    m = _FRAME_RE.match(line)
+    if not m:
+        return None
+    return {
+        "src": m.group("src"),
+        "dst": m.group("dst"),
+        "code": m.group("code").upper(),
+        "payload": m.group("payload").upper(),
+    }
 
 
 def main():
@@ -57,14 +48,7 @@ def main():
         cfg.serial_baud,
     )
 
-    if FILTER_ENABLED:
-        logging.info(
-            "evohome-mitm started | filter ENABLED (codes=%s addrs=%s)",
-            ",".join(FILTER_CODES),
-            FILTER_ADDRS,
-        )
-    else:
-        logging.info("evohome-mitm started | filter DISABLED (logging all RF traffic)")
+    logging.info("evohome-mitm started (RF observe-only mode)")
 
     while True:
         raw = serial.read_frame()
@@ -72,40 +56,31 @@ def main():
             continue
 
         if isinstance(raw, (bytes, bytearray)):
-            line = raw.decode(errors="ignore").strip()
+            text = raw.decode(errors="ignore").strip()
         else:
-            line = str(raw).strip()
+            text = str(raw).strip()
 
-        if not line:
+        if not text:
             continue
 
-        m = FRAME_RE.match(line)
-        if not m:
-            # Onbekend format → toch 1 regel loggen
-            logging.info("RF %s", line)
-            continue
+        parsed = parse_frame(text)
+        decoded = None
 
-        src = m.group("src")
-        dst = m.group("dst")
-        code = m.group("code").upper()
-        payload = m.group("payload").upper()
-        ftype = m.group("type")
+        if parsed:
+            decoded = decode(parsed["code"], parsed["payload"])
 
-        if FILTER_ENABLED:
-            if code not in FILTER_CODES:
-                continue
-            if (src, dst) not in FILTER_ADDRS:
-                continue
-
-        # ── EXACT 1 LOGREGEL PER FRAME ────────────────────────
-        logging.info(
-            "RF %s %s %s -> %s payload=%s",
-            code,
-            ftype,
-            src,
-            dst,
-            payload,
-        )
+        # EXACT 1 logregel per frame
+        if decoded and "meaning" in decoded:
+            logging.info(
+                "RF %s | %s | %s -> %s | payload=%s",
+                parsed["code"],
+                decoded["meaning"],
+                parsed["src"],
+                parsed["dst"],
+                parsed["payload"],
+            )
+        else:
+            logging.info("RF RAW: %s", text)
 
 
 if __name__ == "__main__":
