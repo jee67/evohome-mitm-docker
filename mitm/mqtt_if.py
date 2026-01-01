@@ -17,16 +17,29 @@ class MQTTClient:
         self.client.loop_start()
 
     def publish_frame(self, frame):
+        # publish is non-blocking; failures are acceptable in observe-mode
         self.client.publish("evohome/mitm/raw", frame.text)
 
     def _on_message(self, client, userdata, msg):
         if msg.topic != OUTDOOR_TOPIC:
             return
+
         try:
             value = float(msg.payload.decode())
         except ValueError:
-            logging.warning("Invalid outdoor temperature payload")
+            logging.warning("Invalid outdoor temperature payload: %r", msg.payload)
             return
-        if -30 <= value <= 50:
+
+        if not (-30.0 <= value <= 50.0):
+            logging.warning("Outdoor temperature out of range: %.1f °C", value)
+            return
+
+        if self.context is not None:
             self.context.set_outdoor_temperature(value)
             logging.info("Outdoor temperature %.1f °C", value)
+        else:
+            # observe-only mode: no context, but still visibility
+            logging.debug(
+                "Outdoor temperature %.1f °C received (no context attached)",
+                value
+            )
