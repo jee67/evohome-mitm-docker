@@ -1,5 +1,5 @@
-import logging
 import os
+import logging
 
 from mitm.config import Config
 from mitm.serial_if import SerialInterface
@@ -9,11 +9,24 @@ from mitm.adaptive import AdaptiveCHMax
 from mitm.limiter import CHLimiter
 from mitm.mqtt_if import MQTTClient
 
+
+# ─────────────────────────────────────────────────────────────
+# Logging: force root logger level from LOG_LEVEL env
+# ─────────────────────────────────────────────────────────────
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    level=getattr(logging, log_level, logging.INFO),
-    format="%(asctime)s %(levelname)s %(message)s"
+
+root_logger = logging.getLogger()
+root_logger.setLevel(getattr(logging, log_level, logging.INFO))
+
+handler = logging.StreamHandler()
+handler.setFormatter(
+    logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 )
+
+# voorkom dubbele handlers
+if not root_logger.handlers:
+    root_logger.addHandler(handler)
+
 
 def main():
     cfg = Config.load()
@@ -65,6 +78,7 @@ def main():
 
         else:
             serial.write_frame(raw)
+
 
 if __name__ == "__main__":
     main()
