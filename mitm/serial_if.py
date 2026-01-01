@@ -1,33 +1,31 @@
 import serial
+import re
 
+FRAME_RE = re.compile(rb"\d{3}\s+[IRP]\s+---")
 
 class SerialInterface:
     def __init__(self, device, baudrate):
-        self.ser = serial.Serial(
-            device,
-            baudrate,
-            timeout=0.1,
-        )
-        self._buffer = b""
+        self.ser = serial.Serial(device, baudrate, timeout=0.1)
+        self.buffer = b""
 
-    def read_lines(self):
-        """
-        Read raw bytes, buffer them, and yield complete RAMSES-II lines.
-        """
-        data = self.ser.read(256)
+    def read_frames(self):
+        data = self.ser.read(512)
         if not data:
             return []
 
-        self._buffer += data
-        lines = []
+        self.buffer += data
+        frames = []
 
-        while b"\n" in self._buffer:
-            line, self._buffer = self._buffer.split(b"\n", 1)
-            line = line.strip(b"\r")
-            if line:
-                lines.append(line)
+        matches = list(FRAME_RE.finditer(self.buffer))
+        for i in range(len(matches) - 1):
+            start = matches[i].start()
+            end = matches[i + 1].start()
+            frames.append(self.buffer[start:end].strip())
 
-        return lines
+        if matches:
+            self.buffer = self.buffer[matches[-1].start():]
+
+        return frames
 
     def write_frame(self, data: bytes):
         self.ser.write(data)
